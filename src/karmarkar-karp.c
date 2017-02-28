@@ -10,8 +10,8 @@
 #include <time.h>
 #include <gmp.h>
 
-const int precision = 400;
-const int size = 27;
+int precision;
+//const int size = 27;
 
 mpz_t *populateArray(unsigned int sz);
 mpz_t *initializeBuffer(unsigned int sz);
@@ -23,8 +23,17 @@ int main(int argc, char **argv){
   mpz_t *array;
   mpz_t *buffer;
   mpz_t max;
+  clock_t beginning, end; //for timing
+  double time_spent; //for timing
 
-  array_size = 100000000;
+  if(argc != 3) {
+    printf("Usage: karmarkar-karp N BITS\n");
+    return 0;
+  }
+  beginning = clock();
+  array_size = atoi(argv[1]);
+  precision = atoi(argv[2]);
+
   buffer_size = array_size/3;
   array = populateArray(array_size);
   buffer = initializeBuffer(buffer_size);
@@ -53,9 +62,12 @@ int main(int argc, char **argv){
 //    printf("\n\n");
   }
   
-  printf("%zu  ", mpz_sizeinbase(buffer[0],2));
+  printf("residual bits: %zu\n", mpz_sizeinbase(buffer[0],2));
+  printf("value: ");
   mpz_out_str(stdout, 10, array[0]); printf("\n");
-  
+  end = clock();
+  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+  printf("Walltime = %f\n", time_spent);
   return 0;
 }
 
