@@ -40,7 +40,6 @@ int main(int argc, char **argv){
   }
   
   i = (int) time(0);
-  i = 0;
   printf("Seed = %d\n", i);
   srand48(i);
   sscanf(argv[2],"%d", &index_size);
@@ -164,6 +163,6 @@ void readFile(char *filename){
     mpz_init_set(array[array_size-1],in);
   }
   
-//  qsort(array, array_size, sizeof(mpz_t), mpz_cmp);
+  qsort(array, array_size, sizeof(mpz_t), mpz_cmp);
   mpz_clear(in);
 }
