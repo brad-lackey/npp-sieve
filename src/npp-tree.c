@@ -6,117 +6,187 @@
 //
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <strings.h>
-#include <gmp.h>
-
-void readFile(char *filename);
-int decode(int index);
-void randomSubset();
-
-int intcompare(void *a, void *b){ return *((int *) a) - *((int *) b); }
-int mpzbestcompare(void *a, void *b);
-
-const int precision = 400;
-static int *idx;
-static int index_size;
-static mpz_t *array;
-static int array_size;
-static mpz_t *block;
-static int block_size;
-static mpz_t best;
-static mpz_t data;
+#include "npp-tree.h"
 
 int main(int argc, char **argv){
-  int i,j;
-  mpz_t sum,temp;
-  mpz_t *searchpointer;
+  int i,j,k;
+  unsigned int array_size, block_size;
+  number_t *array, *block;
+  number_t sum, temp, best, data;
+  clock_t beginning, end;
+  double time_spent;
   
-  if (argc != 3) {
-    fprintf(stderr,"Usage: %s <file of numbers> <size>\n\n", argv[0]);
+  
+  if (argc < 3) {
+    fprintf(stderr,"Usage: %s <number of numbers> <precision> [<seed>]\n\n", argv[0]);
     return 2;
   }
   
-  i = (int) time(0);
-  printf("Seed = %d\n", i);
-  srand48(i);
-  sscanf(argv[2],"%d", &index_size);
-  printf("Size = %d\n", index_size);
-  idx = (int *) malloc(index_size*sizeof(int));
-  block_size = 1<<(index_size/2);
-  block = (mpz_t *) malloc(block_size*sizeof(mpz_t));
-  for (i=0; i<block_size; ++i)
-    mpz_init(block[i]);
+  beginning = clock();
+  sscanf(argv[1],"%u", &array_size);
+  printf("Size = %u\n", array_size);
+  sscanf(argv[2],"%u", &precision);
+  printf("Precision = %u\n", precision);
+  if ( argc > 3 )
+    sscanf(argv[3],"%u", &seed);
+  else
+    seed = time(0);
+  printf("Seed = %u\n", seed);
 
-  mpz_init(sum);
-  mpz_init(best);
-  mpz_init(temp);
-  mpz_init(data);
-  readFile(argv[1]);
- 
-  randomSubset();
-
-  for (i=0; i<index_size; ++i){
-    mpz_add(sum, sum, array[idx[i]]);
-    printf("%4d ", idx[i]);
-    mpz_out_str(stdout, 10, array[idx[i]]);
-    printf(" (%zu)\n", mpz_sizeinbase(array[idx[i]], 2));
-  }
+  array = initArray(array_size);
+  populateArray(array, array_size, mpfr_urandomb);
+  computeSum(sum, array, array_size);
   
-  mpz_fdiv_q_2exp(sum, sum, 1);
-
-  mpz_set(block[0], sum);
-  for (i=1; i<block_size; ++i) {
-    j = decode(i);
-    if ( j < 0 )
-      mpz_add(block[i], block[i-1], array[idx[index_size+j]]);
-    else
-      mpz_sub(block[i], block[i-1], array[idx[index_size-j]]);
-  }
-  qsort(block, block_size, sizeof(mpz_t), mpz_cmp);
-
-  for (i=0; i<block_size; ++i) {
-    if ( mpz_sgn(block[i]) < 0 ) {
-      mpz_neg(best, block[i]);
-    } else {
-      break;
-    }
-  }
+  printArray(stdout, array, array_size); printf("\n");
   
+  printf("Target: ");
+  NUMBER_PRINT(stdout, sum);
   printf("\n");
-  mpz_out_str(stdout, 10, best);
-  printf(" (%zu)\n", mpz_sizeinbase(best,2));
+
+  block_size = 1u<<(array_size/2);
+  block = (number_t *) malloc(block_size*sizeof(number_t));
+
+  NUMBER_INIT(temp);
+  NUMBER_SET(temp, sum);
   
-  for (i=1; i<block_size; ++i) {
-    j = decode(i);
-    if ( j < 0 )
-      mpz_sub(temp, temp, array[idx[(-j)-1]]);
+  NUMBER_INIT(best);
+  NUMBER_NEG(best, temp);
+  NUMBER_INIT(block[0]);
+  NUMBER_SET(block[0], temp);
+  
+  for (i=j=1; i<block_size; ++i) {
+    k = decode(i);
+    if ( k < 0 )
+      NUMBER_ADD(temp, temp, array[array_size+k]);
     else
-      mpz_add(temp, temp, array[idx[j-1]]);
-    if ( bsearch(&temp, block, block_size, sizeof(mpz_t), mpzbestcompare) != NULL ){
-      mpz_set(best, data);
-      mpz_out_str(stdout, 10, best);
-      printf(" (%zu)\n", mpz_sizeinbase(best,2));
+      NUMBER_SUB(temp, temp, array[array_size-k]);
+    if ( NUMBER_SGN(temp) < 0 )
+    {
+      if ( NUMBER_CMP(best, temp) < 0 ) NUMBER_SET(best, temp);
+      --block_size;
+    } else {
+      NUMBER_INIT(block[j]);
+      NUMBER_SET(block[j++], temp);
     }
   }
+  block_size = j;
+  block = (number_t *) realloc(block, block_size*sizeof(number_t));
+  qsort(block, block_size, sizeof(number_t), NUMBER_CMP);
+  printArray(stdout, block, block_size); printf("\n");
+
+  end = clock();
+  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+  printf("Constructed block. Walltime = %f\n", time_spent);
+
+  
+  NUMBER_PRINT(stdout, best);
+  printf("\n");
+
+  NUMBER_ZERO(temp);
+  for (i=1; i<1u<<(array_size/2); ++i) {
+    k = decode(i);
+    if ( k < 0 )
+      NUMBER_SUB(temp, temp, array[(-k)-1]);
+    else
+      NUMBER_ADD(temp, temp, array[k-1]);
+    
+    j = 0;
+    k = block_size-1;
+    while ( (j >= 0) && (k - j > 0) ){
+//      printf("%3d %3d\n", j,k);
+      if ( NUMBER_CMP(block[j],temp) < 0 ) {
+        j = k - (k-j)/2;
+      } else {
+        k = (k-j+1)/2;
+        j -= k;
+        k = k+j;
+      }
+    }
+    printf("%3d %3d ", j,k);
+    if ( k == 0 ) NUMBER_NEG(sum, temp);
+    else NUMBER_SUB(sum, block[k-1], temp);
+    if ( NUMBER_CMP(best, sum) < 0 ) NUMBER_SET(best, sum);
+
+    NUMBER_PRINT(stdout, temp);
+    printf("  diff = ");
+    NUMBER_PRINT(stdout, sum);
+    printf("  best = ");
+    NUMBER_PRINT(stdout, best);
+    printf("\n");
+  }
+  end = clock();
+  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+  printf("Completed search. Walltime = %f\n", time_spent);
+
+  NUMBER_CLEAR(sum);
+  NUMBER_NEG(best, best);
+  NUMBER_DUB(best, best);
+  NUMBER_PRINT(stdout, best);
+  printf(" ");
+  NUMBER_LOG2(temp, best);
+  NUMBER_PRINT(stdout, temp);
+  printf("\n");
+  NUMBER_CLEAR(temp);
+  NUMBER_CLEAR(best);
+  freeArray(&array, array_size);
+
+  end = clock();
+  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+  printf("Cleaned up. Walltime = %f\n", time_spent);
 
   return 0;
 }
 
-int mpzbestcompare(void *a, void *b){
-  mpz_sub(data, *((mpz_t *) a), *((mpz_t *) b));
-  if ( mpz_sgn(data) < 0 ) {
-    return -1;
-  } else {
-    if ( mpz_cmp(best, data) < 0 )
-      return 1;
-    else
-      return 0;
+number_t *initArray(unsigned int size){
+  int i;
+  number_t *arr = (number_t *) malloc(size*sizeof(number_t));
+  if ( arr != NULL ) for (i=0; i<size; ++i) NUMBER_INIT(arr[i]);
+  return arr;
+}
+
+void freeArray(number_t **arr_ptr, unsigned int size){
+  int i;
+  if ( (*arr_ptr) != NULL ) for (i=0; i<size; ++i) NUMBER_CLEAR((*arr_ptr)[i]);
+  *arr_ptr = NULL;
+}
+
+void populateArray(number_t *array, unsigned int size, int *(set_random)(number_t n, random_t r)){
+  int i;
+  gmp_randstate_t rand;
+  
+  gmp_randinit_mt(rand);
+  gmp_randseed_ui(rand, seed);
+  for (i=0; i<size; ++i) set_random(array[i], rand);
+  
+  gmp_randclear(rand);
+  qsort(array, size, sizeof(number_t), NUMBER_CMP);
+}
+
+void printArray(FILE *stream, number_t *array, unsigned int size){
+  int i;
+  for (i=0; i<size; ++i) {
+    fprintf(stream, "%d ", i);
+    NUMBER_PRINT(stream, array[i]);
+    fprintf(stream, "\n");
   }
 }
 
+void computeSum(number_t sum, number_t *array, unsigned int size){
+  int i;
+  NUMBER_INIT(sum);
+  NUMBER_ADD(sum, array[0], array[1]);
+  for (i=2; i<size; ++i) NUMBER_ADD(sum, sum, array[i]);
+  NUMBER_HALF(sum,sum);
+}
+
+
+int mpfr_compare(void *a, void *b){
+  return mpfr_cmp((mpfr_t *) a, (mpfr_t *) b);
+}
+
+int mpfr_reverse(void *a, void *b){
+  return -mpfr_cmp((mpfr_t *) a, (mpfr_t *) b);
+}
 
 int decode(int index){
   int depth = 1;
@@ -129,40 +199,4 @@ int decode(int index){
     return -depth;
   else
     return depth;
-}
-
-
-void randomSubset(){
-  int j,k;
-  
-  j = lrand48() % array_size;
-  idx[0] = j;
-  k = 1;
-  while (k < index_size) {
-    j = lrand48() % array_size;
-    if ( bsearch(&j, idx, k, sizeof(int), intcompare) == NULL ) {
-      idx[k++] = j;
-      mergesort(idx, k, sizeof(int), intcompare);
-    }
-  }
-}
-
-
-void readFile(char *filename){
-  mpz_t in;
-  FILE *fp = fopen(filename, "r");
-  
-  array_size = 0;
-  if (fp == NULL) return;
-
-  mpz_init(in);
-  
-  while ( mpz_inp_str(in, fp, 0) > 0 ) {
-    ++array_size;
-    array = realloc(array, array_size*sizeof(mpz_t));
-    mpz_init_set(array[array_size-1],in);
-  }
-  
-  qsort(array, array_size, sizeof(mpz_t), mpz_cmp);
-  mpz_clear(in);
 }

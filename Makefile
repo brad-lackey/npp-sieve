@@ -1,7 +1,7 @@
 VPATH=src
 CC=gcc
 CFLAGS=-O3 -Wall
-LINK=-lm -lgmp
+LINK=-lm -lgmp -lmpfr
 INC=-I/opt/local/include 
 LIB=-L/opt/local/lib
 
