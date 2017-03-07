@@ -13,7 +13,7 @@
 int precision;
 //const int size = 27;
 
-mpz_t *populateArray(unsigned int sz);
+mpz_t *populateArray(unsigned int sz, unsigned long int seed);
 mpz_t *initializeBuffer(unsigned int sz);
 
 
@@ -25,17 +25,21 @@ int main(int argc, char **argv){
   mpz_t max;
   clock_t beginning, end; //for timing
   double time_spent; //for timing
-
-  if(argc != 3) {
-    printf("Usage: karmarkar-karp N BITS\n");
+  unsigned long int seed; //for rng
+  if(argc != 4) {
+    printf("Usage: karmarkar-karp N BITS seed\n");
     return 0;
   }
   beginning = clock();
   array_size = atoi(argv[1]);
   precision = atoi(argv[2]);
+  seed = atoi(argv[3]);
 
+  printf("seed = %lu\n", seed);
+  printf("N = %u\n", array_size);
+  printf("bits = %d\n", precision);
   buffer_size = array_size/3;
-  array = populateArray(array_size);
+  array = populateArray(array_size, seed);
   buffer = initializeBuffer(buffer_size);
   mpz_init2(max, precision);
 
@@ -80,7 +84,7 @@ mpz_t *initializeBuffer(unsigned int sz){
   return array;
 }
 
-mpz_t *populateArray(unsigned int sz){
+mpz_t *populateArray(unsigned int sz, unsigned long int seed){
   int i;
   gmp_randstate_t rand;
   mpz_t *array = calloc(sz, sizeof(mpz_t));
@@ -88,7 +92,7 @@ mpz_t *populateArray(unsigned int sz){
   for(i=0; i<sz; ++i) mpz_init2(array[i], precision);
   
   gmp_randinit_mt(rand);
-  gmp_randseed_ui(rand, time(0));
+  gmp_randseed_ui(rand, seed);
   for (i=0; i<sz; ++i)
     mpz_urandomb(array[i],rand,precision);
 
