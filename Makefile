@@ -11,6 +11,9 @@ npp-tree: npp-tree.c
 karmarkar-karp: karmarkar-karp.c
 	$(CC) $(CFLAGS) $(INC) $(LIB) src/karmarkar-karp.c -o bin/karmarkar-karp.exe $(LINK)
 
+kk-mpfr: karmarkar-karp-mpfr.c
+	$(CC) $(CFLAGS) $(INC) $(LIB) src/karmarkar-karp-mpfr.c -o bin/kk-mpfr.exe $(LINK)
+
 
 # Other functions
 clean :
