@@ -1,0 +1,26 @@
+\documentclass{beamer}
+\usepackage{pgfplotstable}
+\usepackage{pgfplots}
+\pagestyle{empty}
+
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+
+\begin{document}
+
+\begin{frame}{Plot}
+
+\begin{tikzpicture}
+\begin{axis}[ 
+	xlabel = Sorted Position,
+	ylabel = $\log_2(x)$,
+	legend pos = north west ]
+%\addplot[mark=none,color=red] table [x=T, y=L]{output.200.model};
+%\addlegendentry{Model}
+\addplot[mark=none,color=blue] table [x=T, y=L]{output.tree.36.uniform};
+\addlegendentry{Data}
+\end{axis}
+\end{tikzpicture}
+
+\end{frame}
+
+\end{document}

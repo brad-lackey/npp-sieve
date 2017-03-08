@@ -4,34 +4,19 @@ use POSIX;
 
 local $trials = 100;
 
-for (my $trial=0; $trial<$trials; $trial+=1){
-  $out = -log(rand())*(2**-183.129);
-  push @array, 1.0*$out;
-}
+open($lfh, ">", "Data/output.tree.log.uniform");
 
-print "T N L\n";
-$i=0;
-for $m (sort { $a <=> $b } @array){
-  print $i, " ", $m, " ", log($m)/log(2.0), "\n";
-  $i+=1;
-}
-
-__END__
-
-open($lfh, ">", "Data/output.log.uniform");
-
-for ($p=160; $p<=250; $p+=2){
+for ($p=6; $p<=40; $p+=2){
   my @array;
   
-  $log2n = 0.1*$p;
-  $precision = ceil(0.6*$log2n*$log2n);
+  $precision = 200;
   for (my $trial=0; $trial<$trials; $trial+=1){
-    $command = sprintf "./bin/karmarkar-karp.exe %d %d %d", floor(2**$log2n), $precision, $trial, "\n";
+    $command = sprintf "./bin/npp-tree.exe %d %d %d", $p, $precision, $trial, "\n";
     my $out = `$command`;
     push @array, 1.0*$out;
   }
 
-  $filename = sprintf "Data/output.%d.uniform", $p;
+  $filename = sprintf "Data/output.tree.%02d.uniform", $p;
   open(my $fh, ">", $filename);
   print $fh "T N L\n";
   $i=0;
@@ -43,11 +28,24 @@ for ($p=160; $p<=250; $p+=2){
 
   my $sum = 0.0;
   map { $sum += $_ } @array;
-  printf $lfh "%4.1f %.3f\n", $log2n, log(($trials-2)/$sum)/log(2.0);
-
+  printf $lfh "%02d %.3f\n", $p, log(($trials-2)/$sum)/log(2.0);
 }
 
 close($lfh);
+
+__END__
+
+for (my $trial=0; $trial<$trials; $trial+=1){
+  $out = -log(rand())*(2**-183.129);
+  push @array, 1.0*$out;
+}
+
+print "T N L\n";
+$i=0;
+for $m (sort { $a <=> $b } @array){
+  print $i, " ", $m, " ", log($m)/log(2.0), "\n";
+  $i+=1;
+}
 
 __END__
 

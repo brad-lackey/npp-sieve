@@ -13,8 +13,8 @@ int main(int argc, char **argv){
   unsigned int array_size, block_size;
   number_t *array, *block;
   number_t sum, temp, best, data;
-  clock_t beginning, end;
-  double time_spent;
+//  clock_t beginning, end;
+//  double time_spent;
   
   
   if (argc < 3) {
@@ -22,26 +22,26 @@ int main(int argc, char **argv){
     return 2;
   }
   
-  beginning = clock();
+//  beginning = clock();
   sscanf(argv[1],"%u", &array_size);
-  printf("Size = %u\n", array_size);
+//  printf("Size = %u\n", array_size);
   sscanf(argv[2],"%u", &precision);
-  printf("Precision = %u\n", precision);
+//  printf("Precision = %u\n", precision);
   if ( argc > 3 )
     sscanf(argv[3],"%u", &seed);
   else
     seed = time(0);
-  printf("Seed = %u\n", seed);
+//  printf("Seed = %u\n", seed);
 
   array = initArray(array_size);
   populateArray(array, array_size, mpfr_urandomb);
   computeSum(sum, array, array_size);
   
-  printArray(stdout, array, array_size); printf("\n");
+//  printArray(stdout, array, array_size); printf("\n");
   
-  printf("Target: ");
-  NUMBER_PRINT(stdout, sum);
-  printf("\n");
+//  printf("Target: ");
+//  NUMBER_PRINT(stdout, sum);
+//  printf("\n");
 
   block_size = 1u<<(array_size/2);
   block = (number_t *) malloc(block_size*sizeof(number_t));
@@ -72,15 +72,15 @@ int main(int argc, char **argv){
   block_size = j;
   block = (number_t *) realloc(block, block_size*sizeof(number_t));
   qsort(block, block_size, sizeof(number_t), NUMBER_CMP);
-  printArray(stdout, block, block_size); printf("\n");
+//  printArray(stdout, block, block_size); printf("\n");
 
-  end = clock();
-  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
-  printf("Constructed block. Walltime = %f\n", time_spent);
+//  end = clock();
+//  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+//  printf("Constructed block. Walltime = %f\n", time_spent);
 
-  
-  NUMBER_PRINT(stdout, best);
-  printf("\n");
+//  printf("Best = ");
+//  NUMBER_PRINT(stdout, best);
+//  printf("\n");
 
   NUMBER_ZERO(temp);
   for (i=1; i<1u<<(array_size/2); ++i) {
@@ -90,49 +90,50 @@ int main(int argc, char **argv){
     else
       NUMBER_ADD(temp, temp, array[k-1]);
     
-    j = 0;
+    j = -1;
     k = block_size-1;
-    while ( (j >= 0) && (k - j > 0) ){
-//      printf("%3d %3d\n", j,k);
-      if ( NUMBER_CMP(block[j],temp) < 0 ) {
-        j = k - (k-j)/2;
+    while ( (k - j > 0) ){
+//      printf("%d %d\n", j, k);
+
+      if ( NUMBER_CMP(block[k],temp) > 0 ) {
+        k = j + (k-j)/2;
       } else {
-        k = (k-j+1)/2;
-        j -= k;
-        k = k+j;
+        j = (k-j+1)/2;
+        k += j;
+        j = k-j;
       }
     }
-    printf("%3d %3d ", j,k);
-    if ( k == 0 ) NUMBER_NEG(sum, temp);
-    else NUMBER_SUB(sum, block[k-1], temp);
+    if ( k == -1 ) NUMBER_NEG(sum, temp);
+    else NUMBER_SUB(sum, block[k], temp);
     if ( NUMBER_CMP(best, sum) < 0 ) NUMBER_SET(best, sum);
 
-    NUMBER_PRINT(stdout, temp);
-    printf("  diff = ");
-    NUMBER_PRINT(stdout, sum);
-    printf("  best = ");
-    NUMBER_PRINT(stdout, best);
-    printf("\n");
+//    printf("%d %d: ", j, k);
+//    NUMBER_PRINT(stdout, temp);
+//    printf("  diff = ");
+//    NUMBER_PRINT(stdout, sum);
+//    printf("  best = ");
+//    NUMBER_PRINT(stdout, best);
+//    printf("\n");
   }
-  end = clock();
-  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
-  printf("Completed search. Walltime = %f\n", time_spent);
+//  end = clock();
+//  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+//  printf("Completed search. Walltime = %f\n", time_spent);
 
   NUMBER_CLEAR(sum);
   NUMBER_NEG(best, best);
   NUMBER_DUB(best, best);
   NUMBER_PRINT(stdout, best);
-  printf(" ");
-  NUMBER_LOG2(temp, best);
-  NUMBER_PRINT(stdout, temp);
+//  printf(" ");
+//  NUMBER_LOG2(temp, best);
+//  NUMBER_PRINT(stdout, temp);
   printf("\n");
   NUMBER_CLEAR(temp);
   NUMBER_CLEAR(best);
   freeArray(&array, array_size);
 
-  end = clock();
-  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
-  printf("Cleaned up. Walltime = %f\n", time_spent);
+//  end = clock();
+//  time_spent = (double)(end-beginning)/CLOCKS_PER_SEC;
+//  printf("Cleaned up. Walltime = %f\n", time_spent);
 
   return 0;
 }
