@@ -88,6 +88,7 @@ int main(int argc, char **argv){
     if(mpz_cmp_ui(array[0], 0)==0 || mpz_cmp_ui(array[0], 1)==0) success = 1;
     printf("success = %d\n", success);
     score += success;
+    fflush(stdout);
   }
   gmp_randclear(rand);
   mpz_clear(max);
