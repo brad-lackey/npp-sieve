@@ -90,6 +90,7 @@ int main(int argc, char **argv){
     score += success;
   }
   gmp_randclear(rand);
+  mpz_clear(max);
   freeBuffer(array, N);
   freeBuffer(buffer, buffer_size);
   printf("Score: %d/%d = %f\n", score, trials, (double)score/(double)trials);
