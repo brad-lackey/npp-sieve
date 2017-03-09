@@ -8,6 +8,9 @@ LIB=-L/opt/local/lib
 npp-tree: npp-tree.c
 	$(CC) $(CFLAGS) $(INC) $(LIB) src/npp-tree.c -o bin/npp-tree.exe $(LINK)
 
+npp-tree2: npp-tree.c
+	$(CC) $(CFLAGS) $(INC) $(LIB) src/npp-tree.c -o bin/npp-tree2.exe $(LINK)
+
 karmarkar-karp: karmarkar-karp.c
 	$(CC) $(CFLAGS) $(INC) $(LIB) src/karmarkar-karp.c -o bin/karmarkar-karp.exe $(LINK)
 

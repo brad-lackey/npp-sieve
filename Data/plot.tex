@@ -13,11 +13,15 @@
 \begin{axis}[ 
 	xlabel = Sorted Position,
 	ylabel = $\log_2(x)$,
-	legend pos = north west ]
-%\addplot[mark=none,color=red] table [x=T, y=L]{output.200.model};
-%\addlegendentry{Model}
-\addplot[mark=none,color=blue] table [x=T, y=L]{output.tree.36.uniform};
-\addlegendentry{Data}
+	legend pos = south east]
+\addplot[mark=none,color=red] table [x=T, y=L]{output.tree.30.uniform};
+\addlegendentry{Uniform}
+\addplot[mark=none,color=orange] table [x=T, y=L]{output.tree.30.uniform-model};
+\addlegendentry{Uniform model}
+\addplot[mark=none,color=blue] table [x=T, y=L]{output.tree.30.exponential};
+\addlegendentry{Exponential}
+\addplot[mark=none,color=cyan] table [x=T, y=L]{output.tree.30.exponential-model};
+\addlegendentry{Exponential model}
 \end{axis}
 \end{tikzpicture}
 

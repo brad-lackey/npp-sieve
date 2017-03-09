@@ -47,7 +47,7 @@ int createDataBlock(number_t **block_ptr, number_t *array, unsigned int size);
 
 
 int decode(int index);
-
+int unit_exponential(number_t n, random_t r);
 
 int mpfr_compare(void *a, void *b);
 int mpfr_reverse(void *a, void *b);

@@ -35,6 +35,7 @@ int main(int argc, char **argv){
 
   array = initArray(array_size);
   populateArray(array, array_size, mpfr_urandomb);
+//  populateArray(array, array_size, unit_exponential);
   computeSum(sum, array, array_size);
   
 //  printArray(stdout, array, array_size); printf("\n");
@@ -161,6 +162,13 @@ void populateArray(number_t *array, unsigned int size, int *(set_random)(number_
   
   gmp_randclear(rand);
   qsort(array, size, sizeof(number_t), NUMBER_CMP);
+}
+
+int unit_exponential(mpfr_t n, gmp_randstate_t r){
+  mpfr_urandomb(n, r);
+  mpfr_log(n, n, MPFR_RNDN);
+  mpfr_neg(n, n, MPFR_RNDN);
+  return 0;
 }
 
 void printArray(FILE *stream, number_t *array, unsigned int size){
