@@ -13,7 +13,7 @@
 int precision;
 //const int size = 27;
 
-mpz_t *populateArray(unsigned int sz, gmp_randstate_t *rand);
+void populateArray(mpz_t *array, unsigned int sz, gmp_randstate_t *rand);
 mpz_t *initializeBuffer(unsigned int sz);
 void clearBuffer(mpz_t *array, unsigned int sz);
 void freeBuffer(mpz_t *array, unsigned int sz);
@@ -56,10 +56,11 @@ int main(int argc, char **argv){
   buffer = initializeBuffer(buffer_size);
   mpz_init2(max, precision);
   score = 0;
+  array = initializeBuffer(array_size);
   for(t = 0; t < trials; t++) {
     array_size = N;
     clearBuffer(buffer, buffer_size);
-    array = populateArray(array_size, &rand);
+    populateArray(array, array_size, &rand);
   
     while( array_size >= 2){
       mpz_sub(buffer[0], array[array_size-1], array[array_size-2]);
@@ -111,13 +112,10 @@ mpz_t *initializeBuffer(unsigned int sz){
   return array;
 }
 
-mpz_t *populateArray(unsigned int sz, gmp_randstate_t *rand){
+void populateArray(mpz_t *array, unsigned int sz, gmp_randstate_t *rand) {
   int i;
-  mpz_t *array = calloc(sz, sizeof(mpz_t));  
-  for(i=0; i<sz; ++i) mpz_init2(array[i], precision);  
   for (i=0; i<sz; ++i) mpz_urandomb(array[i],rand,precision);
   qsort(array, sz, sizeof(mpz_t), mpz_cmp);
-  return array;
 }
 
 void freeBuffer(mpz_t *array, unsigned int sz) {
