@@ -12,7 +12,7 @@ int main(int argc, char **argv){
   int i,j,k;
   unsigned int array_size, block_size;
   number_t *array, *block;
-  number_t sum, temp, best, data;
+  number_t sum, temp, best;
 //  clock_t beginning, end;
 //  double time_spent;
   
@@ -34,11 +34,16 @@ int main(int argc, char **argv){
 //  printf("Seed = %u\n", seed);
 
   array = initArray(array_size);
-  populateArray(array, array_size, mpfr_urandomb);
-//  populateArray(array, array_size, unit_exponential);
-  computeSum(sum, array, array_size);
+
+//  lambda = 2.0;
+//  populateArray(array, array_size, uniform);
   
-//  printArray(stdout, array, array_size); printf("\n");
+  lambda = 1.0;
+  populateArray(array, array_size, exponential);
+  
+  computeSum(sum, array, array_size);
+
+  printArray(stdout, array, array_size); printf("\n");
   
 //  printf("Target: ");
 //  NUMBER_PRINT(stdout, sum);
@@ -152,7 +157,7 @@ void freeArray(number_t **arr_ptr, unsigned int size){
   *arr_ptr = NULL;
 }
 
-void populateArray(number_t *array, unsigned int size, int *(set_random)(number_t n, random_t r)){
+void populateArray(number_t *array, unsigned int size, int (*set_random)(number_t n, random_t r)){
   int i;
   gmp_randstate_t rand;
   
@@ -164,10 +169,17 @@ void populateArray(number_t *array, unsigned int size, int *(set_random)(number_
   qsort(array, size, sizeof(number_t), NUMBER_CMP);
 }
 
-int unit_exponential(mpfr_t n, gmp_randstate_t r){
+int exponential(mpfr_t n, gmp_randstate_t r){
   mpfr_urandomb(n, r);
   mpfr_log(n, n, MPFR_RNDN);
   mpfr_neg(n, n, MPFR_RNDN);
+  mpfr_div_d(n, n, lambda, MPFR_RNDN);
+  return 0;
+}
+
+int uniform(mpfr_t n, gmp_randstate_t r){
+  mpfr_urandomb(n, r);
+  mpfr_mul_d(n, n, lambda, MPFR_RNDN);
   return 0;
 }
 
