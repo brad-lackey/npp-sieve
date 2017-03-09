@@ -16,7 +16,8 @@
 #define npp_tree_h
 
 unsigned int seed;      // This value characterizes this thread.
-unsigned int precision;
+unsigned int precision; // This value sets the precision of the floating point values.
+double lambda;          // This is a global parameter that can be used in defining initial distributions.
 
 
 typedef mpfr_t number_t;
@@ -26,7 +27,7 @@ typedef mpfr_t number_t;
 #define NUMBER_CLEAR mpfr_clear
 #define NUMBER_ZERO(n) mpfr_set_zero(n,1);
 #define NUMBER_SET(o,i) mpfr_set(o,i,MPFR_RNDN)
-#define NUMBER_PRINT(s,n) mpfr_out_str(s,10,10,n,MPFR_RNDN)
+#define NUMBER_PRINT(s,n) mpfr_out_str(s,10,0,n,MPFR_RNDN)
 #define NUMBER_ADD(o,i1,i2) mpfr_add(o,i1,i2,MPFR_RNDN)
 #define NUMBER_SUB(o,i1,i2) mpfr_sub(o,i1,i2,MPFR_RNDN)
 #define NUMBER_HALF(o,i) mpfr_div_2ui(o,i,1ul,MPFR_RNDN)
@@ -39,7 +40,7 @@ typedef gmp_randstate_t random_t;
 
 number_t *initArray(unsigned int size);
 void freeArray(number_t **arr_ptr, unsigned int size);
-void populateArray(number_t *array, unsigned int size, int *(set_random)(number_t n, random_t r));
+void populateArray(number_t *array, unsigned int size, int (*set_random)(number_t n, random_t r));
 void printArray(FILE *stream, number_t *array, unsigned int size);
 
 void computeSum(number_t sum, number_t *array, unsigned int size);
@@ -47,7 +48,9 @@ int createDataBlock(number_t **block_ptr, number_t *array, unsigned int size);
 
 
 int decode(int index);
-int unit_exponential(number_t n, random_t r);
+
+int exponential(number_t n, random_t r); // Use global parameter lambda to set the (inverse) mean.
+int uniform(number_t n, random_t r);     // Use global parameter lambda: U(0,lambda).
 
 int mpfr_compare(void *a, void *b);
 int mpfr_reverse(void *a, void *b);

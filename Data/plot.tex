@@ -14,14 +14,30 @@
 	xlabel = Sorted Position,
 	ylabel = $\log_2(x)$,
 	legend pos = south east]
-\addplot[mark=none,color=red] table [x=T, y=L]{output.tree.30.uniform};
+\addplot[mark=none,color=red] table [x=T, y=L]{output.tree.40.uniform};
 \addlegendentry{Uniform}
-\addplot[mark=none,color=orange] table [x=T, y=L]{output.tree.30.uniform-model};
+\addplot[mark=none,color=orange] table [x=T, y=L]{output.tree.40.uniform-model};
 \addlegendentry{Uniform model}
-\addplot[mark=none,color=blue] table [x=T, y=L]{output.tree.30.exponential};
+\addplot[mark=none,color=blue] table [x=T, y=L]{output.tree.40.exponential};
 \addlegendentry{Exponential}
-\addplot[mark=none,color=cyan] table [x=T, y=L]{output.tree.30.exponential-model};
+\addplot[mark=none,color=cyan] table [x=T, y=L]{output.tree.40.exponential-model};
 \addlegendentry{Exponential model}
+\end{axis}
+\end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}{Scale}
+
+\begin{tikzpicture}
+\begin{axis}[ 
+	xlabel = Number of numbers,
+	ylabel = Relative size of solution (bits),
+	legend pos = south east]
+\addplot[mark=none,color=red] table [x=N, y=S]{output.tree.log.uniform};
+\addlegendentry{Uniform}
+\addplot[mark=none,color=blue] table [x=N, y=S]{output.tree.log.exponential};
+\addlegendentry{Exponential}
 \end{axis}
 \end{tikzpicture}
 
