@@ -23,8 +23,9 @@
 # Junk
 *.tmp
 
-# Executables
+# Executables and archived files
 bin/*
+Archive/*
 
 # Debug files
 *.dSYM/
