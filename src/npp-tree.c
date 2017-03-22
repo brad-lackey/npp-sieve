@@ -2,55 +2,11 @@
 //  npp-tree.c
 //  
 //
-//  Created by Brad Lackey on 3/21/17.
+//  Created by Brad Lackey on 3/21/17. Last modified 3/22/17.
 //
 //
 
 #include "npp-tree.h"
-
-
-int main(int argc, char **argv){
-  array_t array;
-  number_t best;
-  FILE *fp;
-  
-  
-  if (argc < 2) {
-    fprintf(stderr,"Usage: %s <file of numbers> [<seed>]\n\n", argv[0]);
-    return 2;
-  }
-  
-  fp = fopen(argv[1], "r");
-  scanArray(fp, &array);
-  fclose(fp);
-  
-//  printf("Size = %u\n", array.size);
-  
-  if ( argc > 2 )
-    sscanf(argv[2],"%u", &seed);
-  else
-    seed = time(0);
-//  printf("Seed = %u\n", seed);
-
-//  lambda = 1.0;
-//  populateArray(array, array_size, uniform);
-  
-//  printArray(stdout, array); printf("\n");
-
-  NUMBER_INIT(best, array.precision);
-  runHorowitzSahni(array, best);
-
-  freeArray(array);
-  NUMBER_PRINT(stdout, best);
-  printf(" ");
-  NUMBER_LOG2(best, best);
-  
-  NUMBER_PRINT(stdout, best);
-  printf("\n");
-
-  return 0;
-}
-
 
 int runHorowitzSahni(array_t array, number_t best){
   int i,j,k;
@@ -58,12 +14,13 @@ int runHorowitzSahni(array_t array, number_t best){
   number_t sum, temp;
   number_t *block;
 
+  qsort(array.number, array.size, sizeof(number_t), NUMBER_CMP);
+  
   NUMBER_INIT(sum,array.precision);
   NUMBER_ADD(sum, array.number[0], array.number[1]);
   for (i=2; i<array.size; ++i) NUMBER_ADD(sum, sum, array.number[i]);
   NUMBER_HALF(sum,sum);
 
-  
   block_size = 1u<<(array.size/2);
   block = (number_t *) malloc(block_size*sizeof(number_t));
   
@@ -129,38 +86,6 @@ int runHorowitzSahni(array_t array, number_t best){
 
   return 0;
 }
-
-
-
-
-
-
-void populateArray(number_t *array, unsigned int size, int (*set_random)(number_t n, random_t r)){
-  int i;
-  gmp_randstate_t rand;
-  
-  gmp_randinit_mt(rand);
-  gmp_randseed_ui(rand, seed);
-  for (i=0; i<size; ++i) set_random(array[i], rand);
-  
-  gmp_randclear(rand);
-  qsort(array, size, sizeof(number_t), NUMBER_CMP);
-}
-
-int exponential(mpfr_t n, gmp_randstate_t r){
-  mpfr_urandomb(n, r);
-  mpfr_log(n, n, MPFR_RNDN);
-  mpfr_neg(n, n, MPFR_RNDN);
-  mpfr_div_d(n, n, lambda, MPFR_RNDN);
-  return 0;
-}
-
-int uniform(mpfr_t n, gmp_randstate_t r){
-  mpfr_urandomb(n, r);
-  mpfr_mul_d(n, n, lambda, MPFR_RNDN);
-  return 0;
-}
-
 
 int mpfr_compare(void *a, void *b){
   return mpfr_cmp((mpfr_t *) a, (mpfr_t *) b);
