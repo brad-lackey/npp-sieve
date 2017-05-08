@@ -14,23 +14,35 @@ int runHorowitzSahni(array_t array, number_t best){
   number_t sum, temp;
   number_t *block;
 
+//  printf("Array Size = %u\n", array.size);
+
+  // Sort the array in order to build the search trees.
   qsort(array.number, array.size, sizeof(number_t), NUMBER_CMP);
   
+  // Compute the target vector, i.e. convert NPP to subset-sum problem.
   NUMBER_INIT(sum,array.precision);
   NUMBER_ADD(sum, array.number[0], array.number[1]);
   for (i=2; i<array.size; ++i) NUMBER_ADD(sum, sum, array.number[i]);
   NUMBER_HALF(sum,sum);
 
+  // Create memory to hold one half the meet-in-the-middle.
+  // Note that if the array size is odd, this side takes the smaller half.
   block_size = 1u<<(array.size/2);
   block = (number_t *) malloc(block_size*sizeof(number_t));
   
+  // Initialize a temporary register.
   NUMBER_INIT(temp, array.precision);
   NUMBER_SET(temp, sum);
   
+  // Initialize the array with the target.
   NUMBER_NEG(best, temp);
   NUMBER_INIT(block[0], array.precision);
   NUMBER_SET(block[0], temp);
   
+  // Fill in the rest of the array using a Gray code ordering.
+  // Only relevant values are added to the array.
+  // At the end sort the array for lookups into it.
+//  printf("First half block size = %u\n", block_size);
   for (i=j=1; i<block_size; ++i) {
     k = decode(i);
     if ( k < 0 )
@@ -50,8 +62,13 @@ int runHorowitzSahni(array_t array, number_t best){
   block = (number_t *) realloc(block, block_size*sizeof(number_t));
   qsort(block, block_size, sizeof(number_t), NUMBER_CMP);
   
+  // Now loop over the other half also using Gray code ordering.
+  // If the array size is odd, this takes the larger half.
+  // Lookup into the table (manually did the search).
+  // If we find a better solution store it off.
   NUMBER_ZERO(temp);
-  for (i=1; i<1u<<(array.size/2); ++i) {
+//  printf("Second half block size = %u\n", 1u<<((array.size+1)/2));
+  for (i=1; i<1u<<((array.size+1)/2); ++i) {
     k = decode(i);
     if ( k < 0 )
       NUMBER_SUB(temp, temp, array.number[(-k)-1]);
@@ -71,9 +88,14 @@ int runHorowitzSahni(array_t array, number_t best){
     }
     if ( k == -1 ) NUMBER_NEG(sum, temp);
     else NUMBER_SUB(sum, block[k], temp);
-    if ( NUMBER_CMP(best, sum) < 0 ) NUMBER_SET(best, sum);
+    if ( NUMBER_CMP(best, sum) < 0 ){
+//      printf("%d ",i);
+      NUMBER_SET(best, sum);
+//      NUMBER_PRINT(stdout, best); printf("\n");
+    }
   }
   
+  // Free memory
   for (i=0; i<block_size; ++i)
     NUMBER_CLEAR(block[i]);
   free(block);
