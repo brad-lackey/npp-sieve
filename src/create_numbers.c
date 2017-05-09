@@ -38,7 +38,12 @@ int main(int argc, char **argv){
   
   gmp_randinit_mt(rand);
   gmp_randseed_ui(rand, seed);
-  for (i=0; i<size; ++i) mpfr_urandomb(array.number[i], rand);
+  for (i=0; i<size; ++i){
+    mpfr_urandomb(array.number[i], rand);
+    // The next two lines create the exponential distribution with mean 1.
+    mpfr_log(array.number[i], array.number[i], MPFR_RNDN);
+    mpfr_neg(array.number[i], array.number[i], MPFR_RNDN);
+  }
   
   gmp_randclear(rand);
 //  qsort(array.number, size, sizeof(number_t), mpfr_cmp);

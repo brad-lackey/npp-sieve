@@ -3,12 +3,12 @@
 use POSIX;
 
 local $trials = 1000;
-local $distribution = "uniform";
+local $distribution = "exponential";
 
 open($lfh, ">", "Data/output.log." . "$distribution");
 print $lfh "N S\n";
 
-for ($p=8; $p<=50; $p+=1){
+for ($p=8; $p<=40; $p+=1){
   my @array;
   
   $precision = 4*$p;
