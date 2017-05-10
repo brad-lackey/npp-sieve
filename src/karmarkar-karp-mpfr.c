@@ -97,9 +97,9 @@ mpfr_t *populateArray(unsigned int sz){
   for (i=0; i<sz; ++i){
     mpfr_init2(array[i],precision);
     mpfr_urandomb(temp,rand);
+    mpfr_mul_2ui(array[i], temp, 1ul, MPFR_RNDN);
 //    mpfr_log(array[i], temp, MPFR_RNDN);
 //    mpfr_neg(array[i], array[i], MPFR_RNDN);
-    mpfr_set(array[i],temp,MPFR_RNDN);
   }
 
   gmp_randclear(rand);
