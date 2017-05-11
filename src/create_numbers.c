@@ -40,6 +40,10 @@ int main(int argc, char **argv){
   gmp_randseed_ui(rand, seed);
   for (i=0; i<size; ++i){
     mpfr_urandomb(array.number[i], rand);
+    
+    // The next line creates the uniform distribution with mean 1.
+    //mpfr_mul_2ui(array.number[i], array.number[i], 1ul, MPFR_RNDN);
+    
     // The next two lines create the exponential distribution with mean 1.
     mpfr_log(array.number[i], array.number[i], MPFR_RNDN);
     mpfr_neg(array.number[i], array.number[i], MPFR_RNDN);

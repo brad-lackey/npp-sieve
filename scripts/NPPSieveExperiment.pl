@@ -3,18 +3,18 @@
 use POSIX;
 
 local $trials = 1000;
-local $distribution = "exponential";
+local $distribution = "uniform";
 
 open($lfh, ">", "Data/output.log." . "$distribution");
 print $lfh "N S\n";
 
-for ($p=8; $p<=40; $p+=1){
+for ($p=10; $p<=50; $p+=1){
   my @array;
   
   $precision = 4*$p;
   $inputfile = sprintf "./Data/numbers.%02d.%s", $p, $distribution;
   $outputfile = sprintf "./Data/output.%02d.%s", $p, $distribution;
-  $command = sprintf "./bin/create_numbers.exe %d %d %d > $inputfile", $trials*$p, $precision, $p;
+  $command = sprintf "./bin/create_%s_numbers.exe %d %d %d > $inputfile", $distribution, $trials*$p, $precision, $p;
   system($command);
 
   $command = sprintf "./bin/npp-experiment.exe $inputfile %d > $outputfile", $p;
@@ -32,7 +32,7 @@ for ($p=8; $p<=40; $p+=1){
   my $invmean = ($trials-2)/$sum;
   printf $lfh "%02d %.3f\n", $p, log($invmean)/log(2.0);
 
-  $modelfile = sprintf "./Data/numbers.%02d.%s-model", $p, $distribution;
+  $modelfile = sprintf "./Data/output.%02d.%s-model", $p, $distribution;
   open($modfh, ">", $modelfile);
   print $modfh "npp $trials 48\n";
   for (my $trial=0; $trial<$trials; $trial+=1){
